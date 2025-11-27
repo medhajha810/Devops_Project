@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sentiment Analyzer | DevOps Project</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-lg bg-white shadow-2xl rounded-xl p-8 space-y-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800">
+            Customer Sentiment Analyzer 🤖
+        </h1>
+        <p class="text-center text-gray-500">
+            Submit feedback to see the AI's prediction. This entire application (UI + Model Service) is built and deployed via a **Maven/CI/CD** pipeline.
+        </p>
+
+        <!-- Input Area -->
+        <div class="space-y-4">
+            <textarea id="feedbackText" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" placeholder="Enter your feedback or review here..."></textarea>
+            <button id="analyzeButton" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-md">
+                <svg id="loader" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Analyze Sentiment
+            </button>
+        </div>
+
+        <!-- Output Area -->
+        <div id="results" class="hidden border border-gray-200 rounded-lg p-5 space-y-3 bg-gray-50 transition-all duration-300">
+            <h2 class="text-xl font-semibold text-gray-700">Analysis Result</h2>
+            <div class="flex justify-between items-center border-b pb-2">
+                <p class="text-gray-600">Sentiment:</p>
+                <span id="sentimentOutput" class="text-2xl font-bold"></span>
+            </div>
+            <div class="flex justify-between items-center text-sm text-gray-500">
+                <p>Model Version:</p>
+                <span id="modelVersion"></span>
+            </div>
+        </div>
+
+        <!-- Alert/Error Message Box -->
+        <div id="messageBox" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline" id="errorMessage"> Something went wrong.</span>
+        </div>
+    </div>
+
+    <script>
+        // Use a standard HTTP address without explicitly defining port in variable name for cleaner code
+        const API_ENDPOINT = "http://localhost:8080/analyze"; 
+        const feedbackText = document.getElementById('feedbackText');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const resultsDiv = document.getElementById('results');
+        const sentimentOutput = document.getElementById('sentimentOutput');
+        const modelVersion = document.getElementById('modelVersion');
+        const messageBox = document.getElementById('messageBox');
+        const loader = document.getElementById('loader');
+
+        const sentimentColors = {
+            'Positive': 'text-green-600',
+            'Negative': 'text-red-600',
+            'Neutral': 'text-yellow-600',
+            'Error': 'text-gray-500'
+        };
+
+        function resetUI() {
+            resultsDiv.classList.add('hidden');
+            messageBox.classList.add('hidden');
+            sentimentOutput.className = '';
+        }
+
+        function toggleLoading(isLoading) {
+            analyzeButton.disabled = isLoading;
+            analyzeButton.classList.toggle('opacity-50', isLoading);
+            loader.classList.toggle('hidden', !isLoading);
+            
+            if (isLoading) {
+                 analyzeButton.innerHTML = `<svg id="loader" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analyzing...`;
+            } else {
+                 analyzeButton.textContent = 'Analyze Sentiment';
+            }
+        }
+
+        async function analyze() {
+            resetUI();
+            const text = feedbackText.value.trim();
+            if (!text) {
+                document.getElementById('errorMessage').textContent = "Please enter some text feedback to analyze.";
+                messageBox.classList.remove('hidden');
+                return;
+            }
+
+            toggleLoading(true);
+
+            try {
+                // Fetch call uses the standard API_ENDPOINT variable
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // Ensure the text object is correctly structured for the Java backend
+                    body: JSON.stringify({ text: text }) 
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    // Capture detailed error message from the backend if available
+                    const detail = data.message ? `: ${data.message}` : '.';
+                    throw new Error(`API returned status ${response.status}${detail}`);
+                }
+
+                const sentiment = data.sentiment || 'Neutral';
+                const colorClass = sentimentColors[sentiment] || 'text-gray-600';
+                
+                sentimentOutput.textContent = sentiment;
+                sentimentOutput.className = `text-2xl font-bold ${colorClass}`; // Apply color class here
+                modelVersion.textContent = data.modelVersion;
+
+                resultsDiv.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                document.getElementById('errorMessage').textContent = `Connection or Analysis Failed: ${error.message}. Please verify the Java service is running correctly.`;
+                messageBox.classList.remove('hidden');
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        analyzeButton.addEventListener('click', analyze);
+        
+    </script>
+</body>
+</html>

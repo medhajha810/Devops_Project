@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <!-- Base Spring Boot Starter Parent for Java Backend -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    
+    <groupId>com.devops.mlops</groupId>
+    <artifactId>sentiment-analyzer</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>sentiment-analyzer</name>
+    <description>DevOps project integrating Maven, Git, and a simple ML model.</description>
+
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+
+    <dependencies>
+        <!-- Web Dependency for REST API -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        
+        <!-- Starter for testing with JUnit -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Standard Spring Boot Maven Plugin for Packaging -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            
+            <!-- 
+            *** MLOps INTEGRATION POINT: Copy the ML Model Artifact ***
+            This configuration ensures that the serialized ML model file is included 
+            in the final JAR/WAR artifact during the build process (process-resources phase).
+            -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-ml-artifact</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Destination inside the JAR: /BOOT-INF/classes/ml-resources/ -->
+                            <outputDirectory>${project.build.outputDirectory}/ml-resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <!-- Source folder containing the model artifact -->
+                                    <directory>src/main/ml-model-artifacts</directory> 
+                                    <includes>
+                                        <include>sentiment_model.txt</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+        </plugins>
+    </build>
+
+</project>

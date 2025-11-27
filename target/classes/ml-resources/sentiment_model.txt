@@ -1,0 +1,10 @@
+amazing:Positive; excellent:Positive; great:Positive; fantastic:Positive; wonderful:Positive; awesome:Positive; brilliant:Positive; superb:Positive; terrific:Positive; lovely:Positive;
+good:Positive; fine:Positive; nice:Positive; satisfied:Positive; pleased:Positive; happy:Positive; joy:Positive; love:Positive; like:Positive; admire:Positive;
+perfect:Positive; delightful:Positive; superior:Positive; stunning:Positive; brilliant:Positive; outstanding:Positive;
+recommend:Positive; useful:Positive; helpful:Positive; effective:Positive; efficient:Positive; smooth:Positive; reliable:Positive;
+best:Positive; better:Positive; favorite:Positive; success:Positive; proud:Positive; excited:Positive; eager:Positive; amused:Positive;
+bad:Negative; awful:Negative; terrible:Negative; horrible:Negative; disgusting:Negative; revolting:Negative; miserable:Negative; dreadful:Negative;
+worst:Negative; poor:Negative; unsatisfactory:Negative; inadequate:Negative; insufficient:Negative; inferior:Negative;
+angry:Negative; furious:Negative; upset:Negative; frustrated:Negative; disappointed:Negative; stress:Negative; regret:Negative; hate:Negative; dislike:Negative;
+sad:Negative; depressed:Negative; sorrow:Negative; gloom:Negative; lonely:Negative; crying:Negative; weep:Negative; bored:Negative; tiresome:Negative; tedious:Negative;
+fail:Negative; broken:Negative; error:Negative; issue:Negative; bug:Negative; slow:Negative; difficult:Negative; complex:Negative; expensive:Negative; trash:Negative;
