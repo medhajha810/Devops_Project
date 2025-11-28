@@ -45,6 +45,52 @@ public class SentimentAnalyzer {
     private static final Set<String> NEGATION_WORDS = Set.of(
         "not", "n't", "no", "never", "nothing", "barely", "hardly", "scarcely"
     );
+
+    // Common interjections / exclamations mapping (helps when lexicon doesn't include these)
+    private static final Map<String, String> INTERJECTION_MAP = Map.ofEntries(
+        Map.entry("wow", "Positive"),
+        Map.entry("yay", "Positive"),
+        Map.entry("yayyy", "Positive"),
+        Map.entry("yaay", "Positive"),
+        Map.entry("oh", "Neutral"),
+        Map.entry("ugh", "Negative"),
+        Map.entry("ughh", "Negative"),
+        Map.entry("shit", "Negative"),
+        Map.entry("damn", "Negative"),
+        Map.entry("crap", "Negative"),
+        Map.entry("oops", "Neutral")
+    );
+
+    // Emotion mapping for finer-grained emotion counts used by frontend charts
+    // Maps normalized tokens or lexicon keys to one of: joy, anger, sadness, fear, surprise
+    private static final Map<String, String> EMOTION_MAP = Map.ofEntries(
+        Map.entry("happy", "joy"),
+        Map.entry("joy", "joy"),
+        Map.entry("amazing", "joy"),
+        Map.entry("excellent", "joy"),
+        Map.entry("great", "joy"),
+        Map.entry("surprise", "surprise"),
+        Map.entry("surprised", "surprise"),
+        Map.entry("wow", "surprise"),
+        Map.entry("whoa", "surprise"),
+        Map.entry("oh", "surprise"),
+        Map.entry("sad", "sadness"),
+        Map.entry("sadness", "sadness"),
+        Map.entry("depressed", "sadness"),
+        Map.entry("disappoint", "sadness"),
+        Map.entry("disappointed", "sadness"),
+        Map.entry("disappointment", "sadness"),
+        Map.entry("sucks", "sadness"),
+        Map.entry("shit", "sadness"),
+        Map.entry("shitty", "sadness"),
+        Map.entry("angry", "anger"),
+        Map.entry("furious", "anger"),
+        Map.entry("hate", "anger"),
+        Map.entry("fear", "fear"),
+        Map.entry("scared", "fear"),
+        Map.entry("terrified", "fear"),
+        Map.entry("horrible", "anger")
+    );
     
     // This path is defined by the <outputDirectory> in pom.xml's maven-resources-plugin
     private static final String MODEL_RESOURCE_PATH = "/ml-resources/sentiment_model.txt"; 
@@ -116,6 +162,61 @@ public class SentimentAnalyzer {
         this.negativeWords = calculatedNegativeWords;
     }
 
+    // Normalize input token to handle repeated letters and stray non-letters
+    private String normalizeToken(String token) {
+        if (token == null) return "";
+        String t = token.toLowerCase().trim();
+        // remove any non-letter characters
+        t = t.replaceAll("[^a-z]", "");
+        if (t.isEmpty()) return t;
+        // Reduce long repeated character sequences to at most 2 characters (e.g., "shitttt" -> "shitt")
+        t = t.replaceAll("(.)\\1{2,}", "$1$1");
+        return t;
+    }
+
+    // Levenshtein distance implementation for fuzzy matching
+    private int levenshteinDistance(String a, String b) {
+        if (a == null || b == null) return Integer.MAX_VALUE;
+        int la = a.length();
+        int lb = b.length();
+        if (la == 0) return lb;
+        if (lb == 0) return la;
+        int[] prev = new int[lb + 1];
+        int[] curr = new int[lb + 1];
+        for (int j = 0; j <= lb; j++) prev[j] = j;
+        for (int i = 1; i <= la; i++) {
+            curr[0] = i;
+            for (int j = 1; j <= lb; j++) {
+                int cost = (a.charAt(i - 1) == b.charAt(j - 1)) ? 0 : 1;
+                curr[j] = Math.min(Math.min(curr[j - 1] + 1, prev[j] + 1), prev[j - 1] + cost);
+            }
+            int[] tmp = prev; prev = curr; curr = tmp;
+        }
+        return prev[lb];
+    }
+
+    // Find best matching lexicon key for the candidate token using Levenshtein distance
+    private String findBestLexiconMatch(String candidate) {
+        if (candidate == null || candidate.isEmpty()) return null;
+        String bestKey = null;
+        int bestDist = Integer.MAX_VALUE;
+        for (String key : sentimentKeywords.keySet()) {
+            if (key == null || key.isEmpty()) continue;
+            String normKey = key.toLowerCase().replaceAll("[^a-z]", "");
+            if (normKey.isEmpty()) continue;
+            int dist = levenshteinDistance(candidate, normKey);
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestKey = key;
+            }
+        }
+        if (bestKey == null) return null;
+        // choose threshold based on token length (allow 1 for short words, up to length/3 for longer)
+        int threshold = Math.max(1, candidate.length() / 3);
+        if (bestDist <= threshold) return bestKey;
+        return null;
+    }
+
     /**
      * REST API endpoint for sentiment prediction.
      * @param request A map containing the "text" to analyze.
@@ -134,33 +235,92 @@ public class SentimentAnalyzer {
         
         int positiveScore = 0;
         int negativeScore = 0;
+        // Emotion counters for detailed emotion distribution
+        Map<String, Integer> emotionCounts = new HashMap<>();
+        emotionCounts.put("joy", 0);
+        emotionCounts.put("anger", 0);
+        emotionCounts.put("sadness", 0);
+        emotionCounts.put("fear", 0);
+        emotionCounts.put("surprise", 0);
 
-        // Simplified prediction logic with Negation Handling
+        // Enhanced prediction logic with normalization, interjection handling and fuzzy matching
         for (int i = 0; i < rawTokens.length; i++) {
             String token = rawTokens[i];
-            boolean isNegated = false;
+            if (token == null || token.trim().isEmpty()) continue;
 
-            // Check if the preceding word is a negation word
+            // Check negation by looking at previous raw token (stripped to letters)
+            boolean isNegated = false;
             if (i > 0) {
-                String previousToken = rawTokens[i - 1];
+                String previousToken = rawTokens[i - 1] == null ? "" : rawTokens[i - 1].toLowerCase().replaceAll("[^a-z]", "");
                 if (NEGATION_WORDS.contains(previousToken)) {
                     isNegated = true;
                 }
             }
 
-            if (positiveWords.contains(token)) {
-                if (isNegated) {
-                    // Negated positive word (e.g., "not great") counts as negative
-                    negativeScore++;
-                } else {
-                    positiveScore++;
+            // Normalize token for matching
+            String alpha = token.toLowerCase().replaceAll("[^a-z]", "");
+            if (alpha.isEmpty()) continue;
+            String normalized = normalizeToken(alpha);
+
+            String matchedSentiment = null; // expects values like "Positive" or "Negative" or "Neutral"
+
+            // Direct lexicon membership
+            if (positiveWords.contains(alpha) || positiveWords.contains(normalized)) matchedSentiment = "Positive";
+            else if (negativeWords.contains(alpha) || negativeWords.contains(normalized)) matchedSentiment = "Negative";
+
+            // Interjection map (explicit exclamations)
+            if (matchedSentiment == null) {
+                if (INTERJECTION_MAP.containsKey(normalized)) {
+                    matchedSentiment = INTERJECTION_MAP.get(normalized);
                 }
-            } else if (negativeWords.contains(token)) {
+            }
+
+            // Fuzzy match against lexicon when still unmatched (catch typos like 'haapy' -> 'happy', 'sed' -> 'sad')
+            String bestLexiconMatchCandidate = null;
+            if (matchedSentiment == null) {
+                bestLexiconMatchCandidate = findBestLexiconMatch(normalized);
+                if (bestLexiconMatchCandidate != null) {
+                    matchedSentiment = sentimentKeywords.get(bestLexiconMatchCandidate);
+                }
+            }
+
+            // If we matched a sentiment, apply it (taking negation into account)
+            if (matchedSentiment != null) {
+                boolean isPositive = "Positive".equalsIgnoreCase(matchedSentiment);
+                boolean isNegative = "Negative".equalsIgnoreCase(matchedSentiment);
+
+                // determine emotion label (joy/anger/sadness/fear/surprise)
+                String emotionLabel = null;
+                // prefer explicit EMOTION_MAP for the normalized token
+                if (EMOTION_MAP.containsKey(normalized)) {
+                    emotionLabel = EMOTION_MAP.get(normalized);
+                }
+                // next prefer emotion assigned to matched lexicon key
+                if (emotionLabel == null && bestLexiconMatchCandidate != null) {
+                    String candidateKey = bestLexiconMatchCandidate;
+                    if (candidateKey != null) {
+                        String nk = candidateKey.toLowerCase().replaceAll("[^a-z]", "");
+                        if (EMOTION_MAP.containsKey(nk)) emotionLabel = EMOTION_MAP.get(nk);
+                    }
+                }
+                // fallback: sentiment -> emotion
+                if (emotionLabel == null) {
+                    if (isPositive) emotionLabel = "joy";
+                    else if (isNegative) emotionLabel = "anger";
+                }
+
+                // Apply negation to polarity counters, but emotion remains the interpreted one
                 if (isNegated) {
-                    // Negated negative word (e.g., "not bad") counts as positive
-                    positiveScore++;
+                    if (isPositive) negativeScore++;
+                    else if (isNegative) positiveScore++;
                 } else {
-                    negativeScore++;
+                    if (isPositive) positiveScore++;
+                    else if (isNegative) negativeScore++;
+                }
+
+                // Increment emotion counter if present
+                if (emotionLabel != null && emotionCounts.containsKey(emotionLabel)) {
+                    emotionCounts.put(emotionLabel, emotionCounts.get(emotionLabel) + 1);
                 }
             }
         }
@@ -191,11 +351,23 @@ public class SentimentAnalyzer {
         response.put("negativeScore", Double.valueOf(negScore));
 
         Map<String, Double> emotions = new HashMap<>();
-        emotions.put("joy", Double.valueOf(posScore));
-        emotions.put("anger", Double.valueOf(negScore));
-        emotions.put("sadness", Double.valueOf(0.0));
-        emotions.put("fear", Double.valueOf(0.0));
-        emotions.put("surprise", Double.valueOf(0.0));
+        // compute normalized emotion distribution from counters if available
+        int sumEmotions = 0;
+        for (Integer v : emotionCounts.values()) sumEmotions += v == null ? 0 : v.intValue();
+        if (sumEmotions > 0) {
+            emotions.put("joy", Double.valueOf(emotionCounts.getOrDefault("joy", 0) / (double) sumEmotions));
+            emotions.put("anger", Double.valueOf(emotionCounts.getOrDefault("anger", 0) / (double) sumEmotions));
+            emotions.put("sadness", Double.valueOf(emotionCounts.getOrDefault("sadness", 0) / (double) sumEmotions));
+            emotions.put("fear", Double.valueOf(emotionCounts.getOrDefault("fear", 0) / (double) sumEmotions));
+            emotions.put("surprise", Double.valueOf(emotionCounts.getOrDefault("surprise", 0) / (double) sumEmotions));
+        } else {
+            // fallback to polarity-derived emotions
+            emotions.put("joy", Double.valueOf(posScore));
+            emotions.put("anger", Double.valueOf(negScore));
+            emotions.put("sadness", Double.valueOf(0.0));
+            emotions.put("fear", Double.valueOf(0.0));
+            emotions.put("surprise", Double.valueOf(0.0));
+        }
         response.put("emotions", emotions);
 
         // dominant emotion
