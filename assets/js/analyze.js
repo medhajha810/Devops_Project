@@ -122,10 +122,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let miniBarChart = null;
     let miniPieChart = null;
     
+
     function updateMiniCharts(data) {
-        const emotionScores = data.emotionScores || {};
-        const labels = Object.keys(emotionScores);
-        const values = labels.map(l => safeNumber(emotionScores[l]));
+        // Backend may provide `emotions` (new) or `emotionScores` (older). Prefer `emotions`.
+        const emotionScores = data.emotions || data.emotionScores || {};
+        const defaultLabels = ['joy','anger','sadness','fear','surprise'];
+        const labels = (Object.keys(emotionScores).length > 0) ? Object.keys(emotionScores) : defaultLabels;
+        const values = labels.map(l => {
+            // allow either exact key or lowercase lookup
+            return safeNumber(emotionScores[l] ?? emotionScores[l.toLowerCase()] ?? 0);
+        });
 
         if (miniBarEl) {
             if (!miniBarChart) {
@@ -194,6 +200,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!data || data.error) return alert(data.error || 'Analysis failed.');
         
         resultSentiment.textContent = data.sentiment || 'Neutral';
+        // style the sentiment badge for clear contrast
+        try {
+            const s = (data.sentiment || data.dominantEmotion || 'neutral').toString().toLowerCase();
+            if (s.includes('pos') || s.includes('joy') || s.includes('happy')) {
+                resultSentiment.style.background = '#10B981';
+                resultSentiment.style.color = '#ffffff';
+                resultSentiment.style.borderColor = 'transparent';
+            } else if (s.includes('neg') || s.includes('anger') || s.includes('angry')) {
+                resultSentiment.style.background = '#ef4444';
+                resultSentiment.style.color = '#ffffff';
+                resultSentiment.style.borderColor = 'transparent';
+            } else {
+                resultSentiment.style.background = 'var(--card-bg)';
+                resultSentiment.style.color = 'var(--text)';
+                resultSentiment.style.borderColor = 'var(--border-muted)';
+            }
+        } catch (e) { /* ignore styling errors */ }
         resultModel.textContent = data.modelVersion || '-';
         const rmv = document.getElementById('resultModelVersion');
         if (rmv) rmv.textContent = data.modelVersion || '-';

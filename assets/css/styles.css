@@ -87,7 +87,34 @@ h1,h2,h3,h4,h5,h6{color:var(--text)!important}
   color: var(--text) !important;
 }
 
-.result-card{background:var(--card-bg);border:1px solid var(--border-muted)}
+.result-card{background:var(--card-bg) !important;border:1px solid var(--border-muted) !important}
+
+/* Force readable text and contrasting backgrounds inside result/card panels */
+.result-card, .card, .hero-card, .step-card, .block {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+}
+.result-card * {
+  color: var(--text) !important;
+  background: transparent !important;
+}
+
+/* Make the sentiment badge readable but still distinct; keep meta text muted */
+.result-sentiment span {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border-muted) !important;
+  box-shadow: none !important;
+}
+.result-card .result-meta, .result-card .result-details p, .result-card .result-details {
+  color: var(--muted) !important;
+}
+
+/* Override common Tailwind utility white/gray backgrounds so theme toggles correctly */
+.bg-gray-50, .bg-white, .bg-gray-100, .bg-gray-200, .bg-gray-50 * {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+}
 
 /* Buttons and badges */
 .btn.primary{background:var(--accent);color:#fff}
@@ -106,6 +133,13 @@ h1,h2,h3,h4,h5,h6{color:var(--text)!important}
 .bg-light-bg { background: var(--bg) !important; }
 .bg-gray-800 { background: var(--card-bg) !important; }
 .bg-white { background: var(--card-bg) !important; }
+
+/* Ensure elements that explicitly use white backgrounds (from templates) adapt to theme */
+.step-card.bg-white, .p-5.bg-indigo-50, .bg-indigo-50, .bg-blue-100, .bg-green-100, .bg-purple-100, .bg-yellow-100 {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border-muted) !important;
+}
 
 /* Chart sizing to ensure visibility */
 #miniBar, #miniPie, #pieChart, #barChart {

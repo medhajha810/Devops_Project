@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>History — Sentiment Analyzer</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/index.html" class="logo">Sentiment Analyzer</a>
+      <nav class="nav">
+        <a href="/index.html">Home</a>
+        <a href="/pages/analyze.html">Analyze</a>
+        <a href="/pages/about.html">About</a>
+        <a href="/pages/dashboard.html">Dashboard</a>
+        <a href="/pages/history.html" class="btn" style="margin-left:12px;padding:6px 10px;border-radius:6px;text-decoration:none;">History</a>
+        <button id="themeToggle" class="ml-2 btn ghost" title="Toggle theme">🌙</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Analysis History</h1>
+      <p>All stored analysis entries (from `data/analysis_history.jsonl`).</p>
+
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <label style="font-size:14px;color:var(--muted);">Limit:</label>
+        <input id="historyLimit" type="number" min="1" value="100" style="width:100px;padding:6px;border-radius:6px;border:1px solid var(--border-muted)">
+        <button id="btnLoad" class="btn primary">Load</button>
+        <button id="btnClearLocal" class="btn ghost">Clear Display</button>
+      </div>
+
+      <div id="historyContainer" style="margin-top:18px;">
+        <div id="historyList" style="max-height:600px;overflow:auto;border-radius:8px;padding:8px;background:transparent"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/history.js"></script>
+  <script src="/assets/js/theme.js"></script>
+</body>
+</html>
