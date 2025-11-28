@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard — Sentiment Analyzer</title>
+  <link href="/assets/css/styles.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/index.html" class="logo">Sentiment Analyzer</a>
+      <nav class="nav">
+        <a href="/index.html">Home</a>
+        <a href="/pages/analyze.html">Analyze</a>
+        <a href="/pages/about.html">About</a>
+        <a href="/pages/dashboard.html" class="btn primary" style="margin-left:12px;padding:8px 12px;border-radius:8px;text-decoration:none;">Dashboard</a>
+        <button id="themeToggle" class="ml-2 btn ghost" title="Toggle theme">🌙</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1>Visualization Dashboard</h1>
+      <p>Paste text below or click Analyze then Generate to view charts for that input.</p>
+      <textarea id="dashboardText" rows="6" placeholder="Paste text to visualize" style="width:100%;margin-top:8px;padding:10px;border-radius:8px"></textarea>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button id="btnGenerate" class="btn primary">Generate Charts</button>
+        <button id="btnClear" class="btn ghost">Clear</button>
+      </div>
+
+      <div id="classification" style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);display:inline-block">
+        <strong>Classification:</strong> <span id="dominantEmotionLabel">—</span>
+      </div>
+
+      <div style="display:flex;gap:20px;margin-top:18px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:280px">
+          <h3>Overall Sentiment</h3>
+          <canvas id="pieChart"></canvas>
+        </div>
+        <div style="flex:1;min-width:320px">
+          <h3>Emotion Distribution</h3>
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <label style="font-size:14px;color:var(--muted);">History limit:</label>
+        <input id="historyLimit" type="number" min="1" value="50" style="width:80px;padding:6px;border-radius:6px;border:1px solid rgba(0,0,0,0.08)">
+        <button id="btnLoadHistory" class="btn ghost">Load History</button>
+        <a href="/history" target="_blank" class="btn ghost" style="text-decoration:none;margin-left:8px">Open Raw /history</a>
+        <span style="margin-left:12px;color:var(--muted);font-size:13px">Shows last N entries and a time-series chart.</span>
+      </div>
+
+      <div style="margin-top:18px;display:flex;gap:20px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:360px">
+          <h3>History Time Series</h3>
+          <canvas id="historyLine"></canvas>
+        </div>
+        <div style="flex:1;min-width:360px">
+          <h3>Recent Entries</h3>
+          <div id="historyList" style="max-height:360px;overflow:auto;border-radius:8px;padding:8px;background:rgba(255,255,255,0.02)"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/dashboard.js"></script>
+  <script src="/assets/js/theme.js"></script>
+</body>
+</html>

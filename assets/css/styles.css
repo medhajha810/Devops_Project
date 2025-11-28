@@ -1,0 +1,126 @@
+:root{
+  --bg:#0f1724;
+  --card-bg:#0b1320;
+  --accent:#7c3aed;
+  --muted:#9ca3af;
+  --text:#e6eef8;
+  --card-gradient: linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.02));
+  --muted-2:#9ca3af;
+  --border-muted: rgba(255,255,255,0.06);
+  --circle-light: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.24), transparent);
+  --dot-bg: rgba(255,255,255,0.92);
+  --dot-active: var(--accent);
+}
+
+/* Light theme overrides */
+[data-theme="light"] {
+  --bg: #f7f9fb;
+  --card-bg: #ffffff;
+  --accent: #4f46e5;
+  --muted: #6b7280;
+  --text: #0f1724;
+  --muted-2: #6b7280;
+  --card-gradient: linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.01));
+  --border-muted: rgba(0,0,0,0.06);
+  --circle-light: radial-gradient(circle at 40% 30%, rgba(0,0,0,0.06), transparent);
+  --dot-bg: rgba(17,24,39,0.06);
+  --dot-active: var(--accent);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;color:var(--text);background:var(--bg);min-height:100vh}
+.container{max-width:1100px;margin:0 auto;padding:24px}
+.site-header{padding:18px 0;background:transparent}
+.site-header .container{display:flex;align-items:center;justify-content:space-between}
+.logo{color:var(--text);font-weight:700;text-decoration:none;font-size:18px}
+.nav a{color:var(--muted-2);margin-left:18px;text-decoration:none}
+
+/* Make header use theme background so it matches dark/light modes */
+.site-header{background:var(--card-bg);border-bottom:1px solid var(--border-muted);}
+.site-header .logo{color:var(--text)!important}
+.site-header .nav a{color:var(--muted)!important}
+/* Also support legacy class used in some pages */
+.site-header-bg{background:var(--card-bg)!important;border-bottom:1px solid var(--border-muted)!important}
+.site-header-bg .logo{color:var(--text)!important}
+.site-header-bg .nav-link{color:var(--muted)!important}
+
+.slider-page{display:flex;align-items:center;justify-content:center;min-height:70vh}
+.slider{width:100%;height:70vh;position:relative}
+.items-group{width:100%;height:100%;position:relative}
+.item{top:0;left:0;opacity:0;width:100%;height:100%;display:flex;overflow:hidden;transition:0.6s;visibility:hidden;position:absolute;align-items:center;justify-content:center;padding:40px;box-sizing:border-box}
+.item.active{opacity:1;visibility:visible}
+.block{width:100%;max-width:560px;height:360px;padding:30px;border-radius:16px;color:var(--text);position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+.block .circleLight{position:absolute;top:40px;left:40px;width:240px;height:240px;border-radius:50%;background:var(--circle-light);opacity:0;transition:0.4s}
+.block:hover .circleLight{opacity:1}
+.block .text{position:relative;z-index:2;text-align:center}
+.block h2{font-family:Oswald,serif;font-size:48px;margin:0 0 10px}
+.block p{font-size:16px;color:var(--muted)}
+
+/* Ensure headings across pages always use theme text color for contrast */
+h1,h2,h3,h4,h5,h6{color:var(--text)!important}
+
+/* Ensure page sections use the main background color so dark mode feels fully dark */
+.slider-page, .slider, .items-group, .item, .container, main, .hero, .hero-section {
+  background: transparent;
+}
+
+/* If there are large hero panels styled as cards, ensure they use card-bg */
+.hero-card, .hero-panel, .feature-hero { background: var(--card-bg); color:var(--text); }
+
+.navigations{position:absolute;left:0;right:0;bottom:20px;text-align:center}
+.dots{padding:0;margin:0;list-style:none;display:inline-flex}
+.dots li{width:12px;height:12px;background:var(--dot-bg);border-radius:50%;margin:0 8px;cursor:pointer;opacity:0.6;transition:all .25s}
+.dots li.active{transform:scale(1.4);opacity:1}
+
+/* Analyze & cards page common styles */
+.card{background:var(--card-gradient);padding:28px;border-radius:12px;color:var(--text);box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+.analyze-page .card textarea{width:100%;padding:14px;border-radius:8px;border:1px solid var(--border-muted);background:transparent;color:inherit;margin-top:12px}
+.controls{display:flex;gap:12px;margin-top:12px}
+.btn{padding:10px 16px;border-radius:8px;border:0;cursor:pointer}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid rgba(0,0,0,0.06)}
+.result-card{margin-top:18px;padding:14px;border-radius:8px;background:rgba(255,255,255,0.02)}
+.step-card{background:var(--card-bg);color:var(--text);box-shadow:0 8px 30px rgba(2,6,23,0.4)}
+
+/* Ensure common utility backgrounds adapt to theme */
+.card-bg-dark, .bg-gray-800, .bg-white, .p-5.bg-indigo-50, .bg-indigo-50, .step-card, .card {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+}
+
+.result-card{background:var(--card-bg);border:1px solid var(--border-muted)}
+
+/* Buttons and badges */
+.btn.primary{background:var(--accent);color:#fff}
+.btn.ghost{border:1px solid var(--border-muted);color:var(--muted)}
+
+/* Small utility overrides for index/about sections that used explicit light backgrounds */
+.bg-primary-indigo{background:var(--accent)!important}
+.text-gray-800{color:var(--text)!important}
+.text-gray-900{color:var(--text)!important}
+.text-gray-700{color:var(--muted)!important}
+.text-gray-600{color:var(--muted)!important}
+.text-gray-500{color:var(--muted)!important}
+.text-gray-400{color:var(--muted)!important}
+
+/* Ensure utility background classes bind to theme variables so theme toggle works */
+.bg-light-bg { background: var(--bg) !important; }
+.bg-gray-800 { background: var(--card-bg) !important; }
+.bg-white { background: var(--card-bg) !important; }
+
+/* Chart sizing to ensure visibility */
+#miniBar, #miniPie, #pieChart, #barChart {
+  display: block;
+  width: 100% !important;
+}
+#miniBar { height: 160px !important; }
+#miniPie { height: 140px !important; }
+#pieChart { height: 260px !important; }
+#barChart { height: 260px !important; }
+
+/* Token highlights container */
+#tokenHighlights span { margin: 2px 4px; display: inline-block; }
+.result-sentiment{font-size:28px;font-weight:700}
+.hidden{display:none}
+
+/* Responsive */
+@media (max-width:720px){.block{max-width:100%;height:320px}.block h2{font-size:36px}}

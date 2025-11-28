@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>About — Sentiment Analyzer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    /* Ensure the header is styled cleanly, overriding default classes if necessary */
+    .site-header-bg { background-color: #ffffff; box-shadow: 0 1px 10px rgba(0,0,0,0.05); }
+    .nav-link { color: #4b5563; transition: color 0.2s; font-weight: 500; }
+    .nav-link:hover { color: #4f46e5; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary-indigo': '#4f46e5',
+            'accent-green': '#10b981',
+            'light-bg': '#f9fafb',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-light-bg min-h-screen pt-20">
+  
+  <header class="site-header-bg fixed top-0 w-full z-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+      <a href="/index.html" class="text-2xl font-bold text-gray-800 tracking-tight">Sentiment Analyzer</a>
+      <nav class="flex items-center space-x-6">
+        <a href="/index.html" class="nav-link">Home</a>
+        <a href="/pages/analyze.html" class="nav-link">Analyze</a>
+        <a href="/pages/about.html" class="nav-link text-primary-indigo font-semibold">About</a>
+        <a href="/pages/dashboard.html" class="px-4 py-2 rounded-xl bg-accent-green text-white font-medium hover:bg-green-700 transition duration-200">Dashboard</a>
+        <button id="themeToggle" class="ml-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700" title="Toggle theme">🌙</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+    
+    <div class="text-center py-12">
+        <h1 class="text-5xl font-extrabold text-gray-900 mb-4">
+            Understanding the <span class="text-primary-indigo">Project</span>
+        </h1>
+        <p class="text-xl text-gray-500 max-w-3xl mx-auto">
+            A deep dive into the architecture, core technologies, and goals behind the Sentiment Analyzer.
+        </p>
+    </div>
+
+    <section class="bg-white p-8 md:p-12 rounded-2xl shadow-xl border-t-4 border-primary-indigo">
+      
+      <h2 class="text-3xl font-bold text-gray-800 mb-6">Architecture Overview</h2>
+      <p class="text-lg text-gray-600 leading-relaxed mb-8 border-l-4 border-gray-200 pl-4">
+        This project demonstrates the powerful integration of a **dynamic frontend** with a robust **Java Spring Boot backend**. The primary goal is to showcase the efficient packaging and deployment of a machine learning artifact. The backend exposes a clean RESTful API (`POST /analyze`) that accepts JSON text input and returns precise sentiment analysis results.
+      </p>
+
+      <h2 class="text-2xl font-bold text-gray-800 mt-10 mb-6">Key Project Highlights</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <div class="p-5 bg-indigo-50 rounded-lg shadow-sm flex items-start space-x-4">
+            <span class="text-2xl text-primary-indigo">
+                &#128196;
+            </span>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Comprehensive UI</h3>
+                <p class="text-gray-600 text-sm">A multi-page frontend including Home, Analyze, and About sections for full user experience testing.</p>
+            </div>
+        </div>
+        
+        <div class="p-5 bg-indigo-50 rounded-lg shadow-sm flex items-start space-x-4">
+            <span class="text-2xl text-accent-green">
+                &#10024;
+            </span>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Dynamic Components</h3>
+                <p class="text-gray-600 text-sm">Includes interactive UI elements with animated components for data presentation.</p>
+            </div>
+        </div>
+        
+        <div class="p-5 bg-indigo-50 rounded-lg shadow-sm flex items-start space-x-4">
+            <span class="text-2xl text-primary-indigo">
+                &#128279;
+            </span>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Seamless Backend Integration</h3>
+                <p class="text-gray-600 text-sm">The Analyze page is fully functional and connected directly to the sentiment analysis API endpoint.</p>
+            </div>
+        </div>
+        
+        <div class="p-5 bg-indigo-50 rounded-lg shadow-sm flex items-start space-x-4">
+            <span class="text-2xl text-accent-green">
+                &#128187;
+            </span>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800">Modern & Responsive Design</h3>
+                <p class="text-gray-600 text-sm">Utilizes modern, responsive CSS styling for optimal viewing on any device.</p>
+            </div>
+        </div>
+
+      </div>
+    </section>
+    
+    <section class="mt-10 mb-12 p-8 bg-white rounded-2xl shadow-md text-center">
+        <h3 class="text-2xl font-bold text-gray-700 mb-4">Tech Stack Focus</h3>
+        <div class="flex flex-wrap justify-center gap-6 text-lg font-medium">
+            <span class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full">Java Spring Boot</span>
+            <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full">Lightweight ML Model</span>
+            <span class="bg-purple-100 text-purple-800 px-4 py-2 rounded-full">REST API</span>
+            <span class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full">HTML/CSS/JS Frontend</span>
+        </div>
+    </section>
+
+  </main>
+  <script src="/assets/js/theme.js"></script>
+</body>
+</html>

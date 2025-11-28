@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Analyze — Sentiment Analyzer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .site-header-bg { backdrop-filter: blur(8px); box-shadow: 0 1px 10px rgba(0,0,0,0.05); }
+    .nav-link { color: #4b5563; transition: color 0.2s; font-weight: 500; }
+    .nav-link:hover { color: #4f46e5; }
+    /* Custom style for the textarea */
+    #feedback {
+        width: 100%;
+        padding: 16px;
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        resize: vertical;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #feedback:focus {
+        border-color: #4f46e5; /* Primary indigo focus */
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    /* Base style for result card */
+    .result-card {
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: all 0.3s ease-in-out;
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'primary-indigo': '#4f46e5',
+            'accent-green': '#10b981',
+            'light-bg': '#f9fafb',
+            'positive': '#10b981', /* Green */
+            'negative': '#ef4444', /* Red */
+            'neutral': '#f59e0b',  /* Amber */
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="min-h-screen pt-24">
+  
+  <header class="site-header-bg fixed top-0 w-full z-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+      <a href="/index.html" class="text-2xl font-bold text-gray-800 tracking-tight py-4">Sentiment Analyzer</a>
+      <nav class="flex items-center space-x-6">
+        <a href="/index.html" class="nav-link">Home</a>
+        <a href="/pages/analyze.html" class="nav-link text-primary-indigo font-semibold">Analyze</a>
+        <a href="/pages/about.html" class="nav-link">About</a>
+        <a href="/pages/dashboard.html" class="px-4 py-2 rounded-xl bg-accent-green text-white font-medium hover:bg-green-700 transition duration-200">Dashboard</a>
+        <button id="themeToggle" class="ml-2 p-2 rounded-lg border border-gray-200 bg-white text-gray-700" title="Toggle theme">🌙</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <section class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl border-t-8 border-primary-indigo/80">
+      
+      <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Customer Sentiment Analyzer</h1>
+      <p class="text-lg text-gray-500 mb-8">
+        Submit feedback or upload a text file to see the model's prediction. **Live predictions** appear while typing for instant feedback.
+      </p>
+
+      <textarea id="feedback" placeholder="Paste text or start typing here..." rows="8" class="text-gray-700"></textarea>
+      
+      <div class="flex flex-wrap gap-4 mt-6 items-center controls">
+        <button id="btnAnalyze" type="button" class="px-6 py-3 rounded-xl bg-primary-indigo text-white font-semibold text-lg hover:bg-indigo-700 transition duration-150 transform hover:scale-[1.02] shadow-md shadow-primary-indigo/40">
+          Analyze Text
+        </button>
+        <button id="btnClear" type="button" class="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition duration-150">
+          Clear
+        </button>
+        </div>
+
+      <div id="resultCard" class="result-card bg-gray-50 border border-gray-200 hidden mt-10">
+        
+        <h2 class="text-xl font-bold mb-4 flex items-center text-gray-800">
+            Analysis Result 
+            <svg class="ml-2 w-5 h-5 text-primary-indigo" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 6h.01"></path></svg>
+        </h2>
+
+        <div class="result-sentiment mb-3">
+             <span id="resultSentiment" class="inline-block px-4 py-2 text-2xl font-extrabold rounded-full bg-yellow-100 text-neutral shadow-lg">
+                Pending Analysis
+             </span>
+        </div>
+        
+        <div class="result-meta text-sm text-gray-500 mt-2">
+            Model Type: <span id="resultModel" class="font-semibold text-gray-600">Lexicon-based (V1.0)</span>
+          </div>
+          <div class="result-meta">Model: <span id="resultModelVersion"></span> &nbsp;|&nbsp; Language: <span id="resultLanguage">—</span></div>
+        
+        <div class="result-details mt-4 border-t border-gray-200 pt-4 text-gray-700" id="resultDetails">
+            <p class="text-sm italic">Detailed scoring and emotion breakdowns will appear here after analysis.</p>
+        </div>
+
+        <div class="mt-4 flex flex-wrap gap-6 items-start">
+          <div class="min-w-[220px]">
+            <h4 class="text-sm font-semibold mb-2">Emotion Scores</h4>
+            <canvas id="miniBar" style="max-width:320px"></canvas>
+          </div>
+          <div class="min-w-[160px]">
+            <h4 class="text-sm font-semibold mb-2">Overall</h4>
+            <canvas id="miniPie" style="max-width:200px"></canvas>
+          </div>
+        </div>
+
+        <div id="tokenHighlights" class="mt-4 text-sm"></div>
+        <div class="mt-3 text-xs text-gray-500">View stored analysis history: <a href="/history" target="_blank" style="color:var(--accent);text-decoration:underline">/history</a> (or call <code>?limit=50</code>)</div>
+        
+      </div>
+    </section>
+
+    <section class="mt-12 mb-12 text-center">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Need Comprehensive Reporting?</h2>
+        <p class="text-lg text-gray-600 mb-6">
+            Visualize your analysis results with pie charts and bar graphs on the Dashboard.
+        </p>
+        <a href="/pages/dashboard.html" class="inline-block px-8 py-3 rounded-full bg-accent-green text-white font-bold text-xl hover:bg-green-700 transition duration-200 shadow-lg shadow-accent-green/40">
+            Go to Dashboard
+            <span class="ml-2">→</span>
+        </a>
+    </section>
+
+  </main>
+
+  <script src="/assets/js/analyze.js"></script>
+  <script src="/assets/js/theme.js"></script>
+</body>
+</html>

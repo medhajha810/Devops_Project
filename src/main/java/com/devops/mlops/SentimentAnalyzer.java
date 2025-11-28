@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,15 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
+import java.io.IOException;
 
 /**
  * SentimentAnalyzer Application
@@ -112,7 +122,7 @@ public class SentimentAnalyzer {
      * @return A map containing the predicted sentiment and the model version.
      */
     @PostMapping("/analyze")
-    public ResponseEntity<Map<String, String>> analyzeSentiment(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> analyzeSentiment(@RequestBody Map<String, String> request) {
         String rawText = request.getOrDefault("text", "");
         
         if (rawText.isEmpty()) {
@@ -156,20 +166,83 @@ public class SentimentAnalyzer {
         }
 
         String result;
-        if (positiveScore > negativeScore) {
-            result = "Positive";
-        } else if (negativeScore > positiveScore) {
-            result = "Negative";
+        double posScore = 0.0;
+        double negScore = 0.0;
+
+        int total = positiveScore + negativeScore;
+        if (total > 0) {
+            posScore = ((double) positiveScore) / total;
+            negScore = ((double) negativeScore) / total;
+            if (positiveScore > negativeScore) result = "Positive";
+            else if (negativeScore > positiveScore) result = "Negative";
+            else result = "Neutral";
         } else {
-            // Neutral if scores are equal (including 0=0)
+            // No keywords matched — neutral
             result = "Neutral";
+            posScore = 0.0;
+            negScore = 0.0;
         }
 
-        // Simulating returning a model version (derived from the artifact)
-        Map<String, String> response = new HashMap<>();
+        // Build richer response expected by frontend JS
+        Map<String, Object> response = new LinkedHashMap<>();
         response.put("sentiment", result);
-        response.put("modelVersion", "v0.0.5-MaxLexicon"); // Updated version to reflect logic fix
+        response.put("modelVersion", "v0.0.5-MaxLexicon");
+        response.put("positiveScore", Double.valueOf(posScore));
+        response.put("negativeScore", Double.valueOf(negScore));
+
+        Map<String, Double> emotions = new HashMap<>();
+        emotions.put("joy", Double.valueOf(posScore));
+        emotions.put("anger", Double.valueOf(negScore));
+        emotions.put("sadness", Double.valueOf(0.0));
+        emotions.put("fear", Double.valueOf(0.0));
+        emotions.put("surprise", Double.valueOf(0.0));
+        response.put("emotions", emotions);
+
+        // dominant emotion
+        if (posScore > negScore) {
+            response.put("dominantEmotion", "positive");
+            response.put("dominantEmotionScore", Double.valueOf(posScore));
+        } else if (negScore > posScore) {
+            response.put("dominantEmotion", "negative");
+            response.put("dominantEmotionScore", Double.valueOf(negScore));
+        } else {
+            response.put("dominantEmotion", "neutral");
+            response.put("dominantEmotionScore", Double.valueOf(1.0 - (posScore + negScore)));
+        }
+
+        // timestamp for history UI
+        response.put("timestamp", java.time.ZonedDateTime.now().toString());
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<List<Map<String,Object>>> getHistory(@RequestParam(name="limit", required=false) Integer limit) {
+        List<Map<String,Object>> out = new ArrayList<>();
+        ObjectMapper om = new ObjectMapper();
+        java.nio.file.Path path = Paths.get("data", "analysis_history.jsonl");
+        if (!Files.exists(path)) {
+            return ResponseEntity.ok(out);
+        }
+        try (Stream<String> lines = Files.lines(path)) {
+            // read lines and parse JSON per-line
+            List<String> all = lines.collect(Collectors.toList());
+            // apply limit to last N entries
+            int start = 0;
+            if (limit != null && limit > 0 && limit < all.size()) start = Math.max(0, all.size() - limit);
+            for (int i = start; i < all.size(); i++) {
+                String ln = all.get(i).trim();
+                if (ln.isEmpty()) continue;
+                try {
+                    Map<String,Object> obj = om.readValue(ln, Map.class);
+                    out.add(obj);
+                } catch (IOException ex) {
+                    // skip malformed line
+                }
+            }
+        } catch (IOException e) {
+            // return what we have so far
+        }
+        return ResponseEntity.ok(out);
     }
 }
