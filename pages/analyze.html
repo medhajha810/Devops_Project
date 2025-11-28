@@ -54,6 +54,13 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="min-h-screen pt-24">
+  <!-- Starry background (visible in dark theme) -->
+  <div class="stars" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
   
   <header class="site-header-bg fixed top-0 w-full z-20">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -74,7 +81,7 @@
       
       <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Customer Sentiment Analyzer</h1>
       <p class="text-lg text-gray-500 mb-8">
-        Submit feedback or upload a text file to see the model's prediction. **Live predictions** appear while typing for instant feedback.
+        Submit feedback or upload a text file to see the model's prediction. *Live predictions* appear while typing for instant feedback.
       </p>
 
       <textarea id="feedback" placeholder="Paste text or start typing here..." rows="8" class="text-gray-700"></textarea>
@@ -122,7 +129,6 @@
         </div>
 
         <div id="tokenHighlights" class="mt-4 text-sm"></div>
-        <div class="mt-3 text-xs text-gray-500">View stored analysis history: <a href="/history" target="_blank" style="color:var(--accent);text-decoration:underline">/history</a> (or call <code>?limit=50</code>)</div>
         
       </div>
     </section>

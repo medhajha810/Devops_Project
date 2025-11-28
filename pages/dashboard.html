@@ -8,6 +8,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <!-- Starry background (visible in dark theme) -->
+  <div class="stars" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  <div class="shooting-star" aria-hidden="true"></div>
+  
   <header class="site-header">
     <div class="container">
       <a href="/index.html" class="logo">Sentiment Analyzer</a>
@@ -45,24 +53,9 @@
           <canvas id="barChart"></canvas>
         </div>
       </div>
-      <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <label style="font-size:14px;color:var(--muted);">History limit:</label>
-        <input id="historyLimit" type="number" min="1" value="50" style="width:80px;padding:6px;border-radius:6px;border:1px solid rgba(0,0,0,0.08)">
-        <button id="btnLoadHistory" class="btn ghost">Load History</button>
-        <a href="/history" target="_blank" class="btn ghost" style="text-decoration:none;margin-left:8px">Open Raw /history</a>
-        <span style="margin-left:12px;color:var(--muted);font-size:13px">Shows last N entries and a time-series chart.</span>
-      </div>
+      
 
-      <div style="margin-top:18px;display:flex;gap:20px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:360px">
-          <h3>History Time Series</h3>
-          <canvas id="historyLine"></canvas>
-        </div>
-        <div style="flex:1;min-width:360px">
-          <h3>Recent Entries</h3>
-          <div id="historyList" style="max-height:360px;overflow:auto;border-radius:8px;padding:8px;background:rgba(255,255,255,0.02)"></div>
-        </div>
-      </div>
+      <!-- History sections removed: no persistent history available in this deployment -->
     </section>
   </main>
 
