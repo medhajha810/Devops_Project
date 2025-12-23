@@ -47,7 +47,7 @@
             <!-- 
             *** MLOps INTEGRATION POINT: Copy the ML Model Artifact ***
             This configuration ensures that the serialized ML model file is included 
-            in the final JAR/WAR artifact during the build process (process-resources phase).
+            in the final JAR artifact during the build process (process-resources phase).
             -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -60,11 +60,9 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <!-- Destination inside the JAR: /BOOT-INF/classes/ml-resources/ -->
                             <outputDirectory>${project.build.outputDirectory}/ml-resources</outputDirectory>
                             <resources>
                                 <resource>
-                                    <!-- Source folder containing the model artifact -->
                                     <directory>src/main/ml-model-artifacts</directory> 
                                     <includes>
                                         <include>sentiment_model.txt</include>
